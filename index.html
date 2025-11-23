@@ -1,0 +1,422 @@
+import React, { useState, useEffect } from 'react';
+
+// Styles CSS pour l'impression et la mise en page
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+  
+  body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+  }
+
+  /* Configuration pour l'impression (Génération PDF) */
+  @media print {
+      body {
+          background-color: white;
+          -webkit-print-color-adjust: exact;
+      }
+      .no-print {
+          display: none !important;
+      }
+      .print-area {
+          display: block !important;
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          box-shadow: none !important;
+          border: none !important;
+          position: absolute;
+          top: 0;
+          left: 0;
+      }
+      /* Cache le scrollbar */
+      ::-webkit-scrollbar {
+          display: none;
+      }
+      @page {
+          margin: 0;
+          size: A4;
+      }
+  }
+`;
+
+// Composant Icone simple
+const Icon = ({ name, size = 20, className = "" }) => {
+    if (name === 'printer') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>;
+    if (name === 'plus') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+    if (name === 'trash') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>;
+    if (name === 'refresh') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>;
+    if (name === 'hard-hat') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"/><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M4 15v-3a6 6 0 0 1 6-6h0"/><path d="M14 6h0a6 6 0 0 1 6 6v3"/></svg>;
+    if (name === 'save') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>;
+    return null;
+};
+
+const App = () => {
+    // --- VALEURS PAR DÉFAUT (Initialisation) ---
+    const defaultCompany = {
+        name: "Ivoire BTP Construction",
+        address: "Cocody Riviera 2, Rue des Jardins",
+        city: "Abidjan, Côte d'Ivoire",
+        phone: "+225 07 07 00 11 22",
+        email: "contact@ivoire-btp.ci",
+        siret: "CC: 1234567 A / RCCM: CI-ABJ-2024-B-123",
+        logoUrl: "https://cdn-icons-png.flaticon.com/512/3962/3962954.png"
+    };
+
+    const defaultClient = {
+        name: "M. Koné Moussa",
+        address: "Marcory Zone 4, Résidence la Paix",
+        city: "Abidjan",
+        phone: "+225 05 05 44 55 66"
+    };
+
+    const defaultQuoteInfo = {
+        number: "DEV-2024-ABJ-042",
+        date: new Date().toISOString().split('T')[0],
+        validity: "30 jours",
+        tvaRate: 18
+    };
+
+    const defaultItems = [
+        { id: 1, description: "Démolition cloison brique et évacuation gravats", unit: "m²", qty: 15, price: 15000 },
+        { id: 2, description: "Fourniture et pose carreaux 60x60 (Import Espagne)", unit: "m²", qty: 45, price: 22000 },
+        { id: 3, description: "Peinture type Pantex + 2 couches finition", unit: "m²", qty: 45, price: 8500 },
+        { id: 4, description: "Forfait transport et logistique", unit: "Ens", qty: 1, price: 50000 },
+    ];
+
+    // --- STATE AVEC PERSISTANCE (Chargement Lazy) ---
+    // On vérifie le localStorage à l'initialisation. Si vide, on prend les valeurs par défaut.
+    const [company, setCompany] = useState(() => {
+        const saved = localStorage.getItem('bd_company');
+        return saved ? JSON.parse(saved) : defaultCompany;
+    });
+
+    const [client, setClient] = useState(() => {
+        const saved = localStorage.getItem('bd_client');
+        return saved ? JSON.parse(saved) : defaultClient;
+    });
+
+    const [quoteInfo, setQuoteInfo] = useState(() => {
+        const saved = localStorage.getItem('bd_quoteInfo');
+        return saved ? JSON.parse(saved) : defaultQuoteInfo;
+    });
+
+    const [items, setItems] = useState(() => {
+        const saved = localStorage.getItem('bd_items');
+        return saved ? JSON.parse(saved) : defaultItems;
+    });
+
+    const [saveStatus, setSaveStatus] = useState("Sauvegardé");
+
+    // --- EFFET : SAUVEGARDE AUTOMATIQUE ---
+    // À chaque changement d'état, on met à jour le localStorage
+    useEffect(() => {
+        setSaveStatus("Sauvegarde...");
+        localStorage.setItem('bd_company', JSON.stringify(company));
+        localStorage.setItem('bd_client', JSON.stringify(client));
+        localStorage.setItem('bd_quoteInfo', JSON.stringify(quoteInfo));
+        localStorage.setItem('bd_items', JSON.stringify(items));
+        
+        const timer = setTimeout(() => setSaveStatus("Sauvegardé"), 500);
+        return () => clearTimeout(timer);
+    }, [company, client, quoteInfo, items]);
+
+    // --- HELPERS ---
+    const formatPrice = (amount) => {
+        return new Intl.NumberFormat('fr-CI', { 
+            style: 'currency', 
+            currency: 'XOF',
+            maximumFractionDigits: 0 
+        }).format(amount);
+    };
+
+    const calculateSubtotal = () => items.reduce((acc, item) => acc + (item.qty * item.price), 0);
+    const calculateTVA = (subtotal) => subtotal * (quoteInfo.tvaRate / 100);
+    const calculateTotal = () => {
+        const sub = calculateSubtotal();
+        return sub + calculateTVA(sub);
+    };
+
+    // --- HANDLERS ---
+    const handleCompanyChange = (e) => setCompany({ ...company, [e.target.name]: e.target.value });
+    const handleClientChange = (e) => setClient({ ...client, [e.target.name]: e.target.value });
+    const handleQuoteChange = (e) => setQuoteInfo({ ...quoteInfo, [e.target.name]: e.target.value });
+
+    const updateItem = (id, field, value) => {
+        setItems(items.map(item => 
+            item.id === id ? { ...item, [field]: value } : item
+        ));
+    };
+
+    const addItem = () => {
+        setItems([...items, { id: Date.now(), description: "Nouvelle prestation", unit: "U", qty: 1, price: 0 }]);
+    };
+
+    const removeItem = (id) => {
+        setItems(items.filter(item => item.id !== id));
+    };
+
+    const handlePrint = () => {
+        window.print();
+    };
+
+    const handleReset = () => {
+        if(window.confirm("Nouveau devis : Voulez-vous effacer les lignes existantes ?\n(Les infos de l'entreprise seront conservées)")) {
+            setItems([]);
+            // On pourrait aussi réinitialiser le numéro de devis ou la date ici si besoin
+        }
+    }
+
+    return (
+        <div className="min-h-screen flex flex-col lg:flex-row text-slate-800 font-sans">
+            {/* Injection des styles globaux et print */}
+            <style>{styles}</style>
+
+            {/* --- SIDEBAR / EDITOR (Hidden on Print) --- */}
+            <div className="no-print w-full lg:w-1/3 bg-white border-r border-slate-200 p-6 overflow-y-auto h-auto lg:h-screen shadow-xl z-10 flex flex-col justify-between">
+                <div>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2">
+                            <div className="bg-orange-500 p-2 rounded-lg text-white">
+                                <Icon name="hard-hat" size={24} />
+                            </div>
+                            <h1 className="text-2xl font-bold text-slate-800">BatiDevis CI</h1>
+                        </div>
+                        {/* Indicateur de sauvegarde */}
+                        <div className="text-xs text-slate-400 flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-full">
+                            <div className={`w-2 h-2 rounded-full ${saveStatus === "Sauvegardé" ? 'bg-green-400' : 'bg-yellow-400'}`}></div>
+                            {saveStatus}
+                        </div>
+                    </div>
+
+                    <div className="space-y-8">
+                        {/* Section Entreprise */}
+                        <section>
+                            <h2 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-3 border-b pb-2">Mon Entreprise</h2>
+                            <div className="space-y-3">
+                                <input type="text" name="name" value={company.name} onChange={handleCompanyChange} placeholder="Nom de l'entreprise" className="w-full p-2 border rounded text-sm" />
+                                <input type="text" name="address" value={company.address} onChange={handleCompanyChange} placeholder="Adresse (ex: Cocody...)" className="w-full p-2 border rounded text-sm" />
+                                <div className="flex gap-2">
+                                    <input type="text" name="city" value={company.city} onChange={handleCompanyChange} placeholder="Ville" className="w-full p-2 border rounded text-sm" />
+                                </div>
+                                <input type="text" name="siret" value={company.siret} onChange={handleCompanyChange} placeholder="CC / RCCM" className="w-full p-2 border rounded text-sm" />
+                                <input type="text" name="email" value={company.email} onChange={handleCompanyChange} placeholder="Email" className="w-full p-2 border rounded text-sm" />
+                            </div>
+                        </section>
+
+                        {/* Section Client */}
+                        <section>
+                            <h2 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-3 border-b pb-2">Informations Client</h2>
+                            <div className="space-y-3">
+                                <input type="text" name="name" value={client.name} onChange={handleClientChange} placeholder="Nom du client" className="w-full p-2 border rounded text-sm bg-orange-50 border-orange-200" />
+                                <textarea name="address" value={client.address} onChange={handleClientChange} placeholder="Adresse du chantier" rows="2" className="w-full p-2 border rounded text-sm bg-orange-50 border-orange-200" />
+                                <input type="text" name="city" value={client.city} onChange={handleClientChange} placeholder="Ville" className="w-full p-2 border rounded text-sm bg-orange-50 border-orange-200" />
+                            </div>
+                        </section>
+
+                        {/* Section Config Devis */}
+                        <section>
+                            <h2 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-3 border-b pb-2">Paramètres Devis</h2>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs text-slate-500 block mb-1">Numéro</label>
+                                    <input type="text" name="number" value={quoteInfo.number} onChange={handleQuoteChange} className="w-full p-2 border rounded text-sm font-mono" />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-slate-500 block mb-1">Date</label>
+                                    <input type="date" name="date" value={quoteInfo.date} onChange={handleQuoteChange} className="w-full p-2 border rounded text-sm" />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-slate-500 block mb-1">TVA (%)</label>
+                                    <input type="number" name="tvaRate" value={quoteInfo.tvaRate} onChange={handleQuoteChange} className="w-full p-2 border rounded text-sm" />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-slate-500 block mb-1">Validité</label>
+                                    <input type="text" name="validity" value={quoteInfo.validity} onChange={handleQuoteChange} className="w-full p-2 border rounded text-sm" />
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Section Items Edit (Mobile/Compact view for editing) */}
+                        <section>
+                            <div className="flex justify-between items-center mb-3 border-b pb-2">
+                                <h2 className="text-sm uppercase tracking-wider text-slate-500 font-bold">Lignes de devis</h2>
+                                <button onClick={addItem} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 flex items-center gap-1">
+                                    <Icon name="plus" size={14} /> Ajouter
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                {items.map((item, idx) => (
+                                    <div key={item.id} className="bg-slate-50 p-3 rounded border border-slate-200 relative group">
+                                        <button onClick={() => removeItem(item.id)} className="absolute top-2 right-2 text-red-400 hover:text-red-600">
+                                            <Icon name="trash" size={16} />
+                                        </button>
+                                        <div className="space-y-2 pr-6">
+                                            <input 
+                                                type="text" 
+                                                value={item.description} 
+                                                onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                                                className="w-full p-1 bg-transparent border-b border-slate-300 focus:border-blue-500 outline-none text-sm font-medium"
+                                                placeholder="Description de la tâche"
+                                            />
+                                            <div className="flex gap-2">
+                                                <div className="w-1/4">
+                                                    <label className="text-[10px] text-slate-500">Qté</label>
+                                                    <input type="number" value={item.qty} onChange={(e) => updateItem(item.id, 'qty', parseFloat(e.target.value))} className="w-full p-1 text-sm border rounded" />
+                                                </div>
+                                                <div className="w-1/4">
+                                                    <label className="text-[10px] text-slate-500">Unité</label>
+                                                    <select value={item.unit} onChange={(e) => updateItem(item.id, 'unit', e.target.value)} className="w-full p-1 text-sm border rounded bg-white">
+                                                        <option value="U">U</option>
+                                                        <option value="m²">m²</option>
+                                                        <option value="m³">m³</option>
+                                                        <option value="ml">ml</option>
+                                                        <option value="h">h</option>
+                                                        <option value="Ens">Ens</option>
+                                                        <option value="Fft">Fft</option>
+                                                    </select>
+                                                </div>
+                                                <div className="w-1/2">
+                                                    <label className="text-[10px] text-slate-500">Prix U. (FCFA)</label>
+                                                    <input type="number" value={item.price} onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value))} className="w-full p-1 text-sm border rounded" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {items.length === 0 && <div className="text-center text-slate-400 text-sm py-4">Aucune ligne. Ajoutez des prestations.</div>}
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="mt-8 pt-6 border-t bg-white pb-4">
+                        <div className="flex gap-3">
+                            <button onClick={handlePrint} className="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg shadow flex items-center justify-center gap-2 font-semibold">
+                                <Icon name="printer" /> Imprimer / PDF
+                            </button>
+                            <button onClick={handleReset} title="Nouveau devis (efface les lignes)" className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 rounded-lg">
+                                <Icon name="refresh" />
+                            </button>
+                        </div>
+                    </div>
+                    {/* Signature du créateur du site */}
+                    <div className="mt-4 pt-4 border-t text-center text-xs text-slate-500">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <img src="https://cdn-icons-png.flaticon.com/512/3962/3962954.png" alt="Logo Créateur" className="h-5 w-5" />
+                            <p>Site réalisé par <span className="font-semibold">Web Solutions Abidjan</span></p>
+                        </div>
+                        <p>© 2024 Tous droits réservés.</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* --- PREVIEW AREA (Print Area) --- */}
+            <div className="flex-1 bg-slate-100 p-4 lg:p-12 overflow-y-auto">
+                {/* Paper Sheet */}
+                <div className="print-area bg-white shadow-2xl mx-auto max-w-[21cm] min-h-[29.7cm] p-[1.5cm] relative text-sm leading-normal">
+                    
+                    {/* Header */}
+                    <header className="flex justify-between items-start mb-12">
+                        <div className="w-1/2">
+                            <div className="flex items-center gap-3 mb-4">
+                                {/* Logo simulé si pas d'URL */}
+                                {company.logoUrl ? 
+                                    <img src={company.logoUrl} alt="Logo" className="h-16 object-contain" onError={(e) => e.target.style.display='none'} /> : 
+                                    <div className="h-16 w-16 bg-orange-600 text-white flex items-center justify-center font-bold text-2xl rounded">BTP</div>
+                                }
+                            </div>
+                            <h2 className="font-bold text-lg text-slate-900">{company.name}</h2>
+                            <p className="text-slate-600 whitespace-pre-line">{company.address}</p>
+                            <p className="text-slate-600">{company.city}</p>
+                            <div className="mt-4 text-xs text-slate-500">
+                                <p>Identifiants : {company.siret}</p>
+                                <p>Email : {company.email}</p>
+                                <p>Tél : {company.phone}</p>
+                            </div>
+                        </div>
+                        <div className="w-1/3 bg-slate-50 p-4 rounded border border-slate-100">
+                            <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Client</p>
+                            <h3 className="font-bold text-slate-900 text-base mb-1">{client.name}</h3>
+                            <p className="text-slate-600">{client.address}</p>
+                            <p className="text-slate-600">{client.city}</p>
+                        </div>
+                    </header>
+
+                    {/* Quote Details */}
+                    <div className="flex justify-between items-end mb-8 border-b-2 border-orange-600 pb-2">
+                        <div>
+                            <h1 className="text-3xl font-bold text-orange-900">DEVIS</h1>
+                            <p className="text-slate-500 mt-1">Objet : Travaux de rénovation / construction</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-slate-600">N° : <span className="font-bold text-slate-900">{quoteInfo.number}</span></p>
+                            <p className="text-slate-600">Date : <span className="font-bold text-slate-900">{new Date(quoteInfo.date).toLocaleDateString('fr-FR')}</span></p>
+                            <p className="text-xs text-slate-400 mt-1">Validité : {quoteInfo.validity}</p>
+                        </div>
+                    </div>
+
+                    {/* Table */}
+                    <table className="w-full mb-8 border-collapse">
+                        <thead>
+                            <tr className="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider text-left">
+                                <th className="py-3 px-4 w-1/2">Description</th>
+                                <th className="py-3 px-2 text-center">Qté</th>
+                                <th className="py-3 px-2 text-center">Unité</th>
+                                <th className="py-3 px-2 text-right">Prix U.</th>
+                                <th className="py-3 px-4 text-right">Total HT</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-slate-700">
+                            {items.map((item) => (
+                                <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                                    <td className="py-3 px-4 align-top">
+                                        <p className="font-medium">{item.description}</p>
+                                    </td>
+                                    <td className="py-3 px-2 text-center align-top">{item.qty}</td>
+                                    <td className="py-3 px-2 text-center align-top">{item.unit}</td>
+                                    <td className="py-3 px-2 text-right align-top">{formatPrice(item.price)}</td>
+                                    <td className="py-3 px-4 text-right align-top font-medium">{formatPrice(item.qty * item.price)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {/* Totals */}
+                    <div className="flex justify-end mb-12">
+                        <div className="w-1/2 lg:w-1/3">
+                            <div className="flex justify-between py-2 border-b border-slate-100">
+                                <span className="text-slate-600">Total HT</span>
+                                <span className="font-bold">{formatPrice(calculateSubtotal())}</span>
+                            </div>
+                            <div className="flex justify-between py-2 border-b border-slate-100">
+                                <span className="text-slate-600">TVA ({quoteInfo.tvaRate}%)</span>
+                                <span>{formatPrice(calculateTVA(calculateSubtotal()))}</span>
+                            </div>
+                            <div className="flex justify-between py-3 border-t-2 border-slate-800 mt-2 bg-slate-50 px-2 -mx-2 rounded">
+                                <span className="font-bold text-lg text-slate-900">NET À PAYER</span>
+                                <span className="font-bold text-lg text-orange-600">{formatPrice(calculateTotal())}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <footer className="absolute bottom-0 left-0 w-full p-[1.5cm] pt-0 text-center">
+                        <div className="text-[10px] text-slate-400 border-t pt-4">
+                            <p>Bon pour accord, date et signature :</p>
+                            <div className="h-16 border border-dashed border-slate-300 mt-2 w-1/2 mx-auto mb-4 bg-slate-50 flex items-center justify-center text-slate-300">
+                                (Espace Signature Client)
+                            </div>
+                            <p>{company.name} - {company.siret} - {company.address}</p>
+                            <p>Compte Bancaire (RIB) : CI023 01234 012345678901 25 (Ecobank)</p>
+                        </div>
+                    </footer>
+
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default App;
