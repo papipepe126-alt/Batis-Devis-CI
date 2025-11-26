@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BatiDevis CI - Gestion BTP</title>
+    <title>BatiDevis CI - Gestion Pro</title>
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👷‍♂️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏗️</text></svg>">
 
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -24,7 +24,6 @@
     </script>
 
     <style>
-        /* CSS SPÉCIFIQUE IMPRESSION & ANIMATIONS */
         body { background-color: #f1f5f9; color: #334155; }
         .input-standard { width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.875rem; transition: all 0.2s; outline: none; }
         .input-standard:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
@@ -32,7 +31,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin 2s linear infinite; }
         
-        /* IMPRESSION A4 PARFAITE */
+        /* IMPRESSION */
         @media print {
             body { background-color: white; }
             .no-print { display: none !important; }
@@ -52,7 +51,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- COMPOSANT ICONE ---
+        // --- ICONES ---
         const Icon = ({ name, size = 18, className = "" }) => {
             const icons = {
                 printer: <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" />,
@@ -60,19 +59,16 @@
                 trash: <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />,
                 settings: <path d="M12.22 2h-.44a2 2 0 01-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.09a2 2 0 01-1-1.74v-.51a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2zM12 9a3 3 0 100 6 3 3 0 000-6z" />,
                 sparkles: <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />,
-                mail: <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6" />,
-                analysis: <path d="M12 22a10 10 0 100-20 10 10 0 000 20zM12 16v-4M12 8h.01" />,
+                whatsapp: <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>,
                 loader: <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />,
                 close: <path d="M18 6L6 18M6 6l12 12" />,
-                helmet: <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />,
-                clipboard: <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2M8 2h8v4H8z" />
+                helmet: <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             };
-            return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{icons[name]}</svg>;
+            return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>{icons[name]}</svg>;
         };
 
-        // --- COMPOSANT PRINCIPAL ---
         const App = () => {
-            // STATE
+            // --- ETAT (STATE) ---
             const [docType, setDocType] = useState('quote');
             const [company, setCompany] = useState(() => JSON.parse(localStorage.getItem('bd_company')) || {
                 name: "MIKARIA DEV BTP",
@@ -81,9 +77,10 @@
                 phone: "+225 07 67 39 15 18",
                 email: "contact@mikaria-dev.ci",
                 siret: "RCCM: CI-ABJ-2025-B-123",
+                bank: "Ecobank CI: 12345 67890 12345678901 22", // Nouveau champ Banque
                 logoUrl: ""
             });
-            const [client, setClient] = useState(() => JSON.parse(localStorage.getItem('bd_client')) || { name: "", address: "", city: "Abidjan" });
+            const [client, setClient] = useState(() => JSON.parse(localStorage.getItem('bd_client')) || { name: "", phone: "", address: "", city: "Abidjan" });
             const [quoteInfo, setQuoteInfo] = useState(() => JSON.parse(localStorage.getItem('bd_info')) || {
                 number: "DEV-2025-001",
                 date: new Date().toISOString().split('T')[0],
@@ -98,22 +95,17 @@
             const [apiKey, setApiKey] = useState(() => localStorage.getItem('btp_api_key') || "");
             const [showSettings, setShowSettings] = useState(false);
             const [loadingAi, setLoadingAi] = useState(null);
-            const [showAiModal, setShowAiModal] = useState(false);
-            const [aiResult, setAiResult] = useState({ title: "", text: "" });
             const [toast, setToast] = useState(null);
 
-            // SAVE AUTO
+            // --- EFFETS ---
             useEffect(() => {
-                const timer = setTimeout(() => {
-                    localStorage.setItem('bd_company', JSON.stringify(company));
-                    localStorage.setItem('bd_client', JSON.stringify(client));
-                    localStorage.setItem('bd_info', JSON.stringify(quoteInfo));
-                    localStorage.setItem('bd_items', JSON.stringify(items));
-                }, 1000);
-                return () => clearTimeout(timer);
+                localStorage.setItem('bd_company', JSON.stringify(company));
+                localStorage.setItem('bd_client', JSON.stringify(client));
+                localStorage.setItem('bd_info', JSON.stringify(quoteInfo));
+                localStorage.setItem('bd_items', JSON.stringify(items));
             }, [company, client, quoteInfo, items]);
 
-            // CALCULS
+            // --- CALCULS ---
             const formatPrice = (p) => new Intl.NumberFormat('fr-CI', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(p || 0);
             const calculateSubtotal = () => items.reduce((acc, i) => acc + (i.qty * i.price), 0);
             const calculateTotal = () => calculateSubtotal() * (1 + quoteInfo.tvaRate / 100);
@@ -121,57 +113,62 @@
             const updateItem = (id, field, val) => setItems(prev => prev.map(i => i.id === id ? { ...i, [field]: val } : i));
             const showToast = (msg, type) => { setToast({ msg, type }); setTimeout(() => setToast(null), 4000); };
 
-            // IA SERVICE (SIMULATION + REEL)
-            const callAiService = async (type, payload) => {
-                setLoadingAi(type === 'item' ? payload.id : type);
-
-                if (!apiKey) {
-                    await new Promise(r => setTimeout(r, 1200));
-                    if (type === 'enrich') updateItem(payload.id, 'description', `Fourniture et pose de ${payload.text} avec finitions soignées.`);
-                    if (type === 'price') updateItem(payload.id, 'price', Math.floor(Math.random() * 20000) + 2000);
-                    if (type === 'email' || type === 'analysis') {
-                        setAiResult({
-                            title: type === 'email' ? "Email (Mode Démo)" : "Analyse (Mode Démo)",
-                            text: type === 'email' 
-                                ? `Bonjour ${client.name},\n\nVoici le devis ${quoteInfo.number} (${formatPrice(calculateTotal())}).\nCordialement, ${company.name}`
-                                : `Analyse :\n- Durée : 4 jours\n- Rentabilité : OK\n- Matériaux : Vérifier stock.`
-                        });
-                        setShowAiModal(true);
-                    }
-                    setLoadingAi(null);
-                    showToast("Mode Simulation (Configurez la clé API pour le réel)", "info");
+            // --- FONCTION WHATSAPP ---
+            const handleWhatsApp = () => {
+                if (!client.phone) {
+                    showToast("Numéro du client manquant !", "error");
                     return;
                 }
+                
+                // Nettoyage du numéro (garde que les chiffres)
+                const cleanPhone = client.phone.replace(/[^0-9]/g, '');
+                
+                const typeName = docType === 'quote' ? 'Devis' : docType === 'invoice' ? 'Facture' : 'Reçu';
+                const total = formatPrice(calculateTotal());
+                
+                let text = `Bonjour ${client.name},\n\n`;
+                text += `Voici votre *${typeName} N° ${quoteInfo.number}*.\n`;
+                text += `🗓️ Date : ${new Date(quoteInfo.date).toLocaleDateString('fr-FR')}\n`;
+                text += `💰 *Montant Total : ${total}*\n\n`;
+                text += `Détail rapide :\n`;
+                items.forEach(i => {
+                    text += `- ${i.description} (${i.qty} ${i.unit})\n`;
+                });
+                text += `\nCordialement,\n*${company.name}*`;
 
+                const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+                window.open(url, '_blank');
+            };
+
+            // --- APPELS IA ---
+            const callAiService = async (type, payload) => {
+                setLoadingAi(type === 'item' ? payload.id : type);
+                // Simulation rapide si pas de clé (pour la démo)
+                if (!apiKey) {
+                    await new Promise(r => setTimeout(r, 1000));
+                    if(type==='enrich') updateItem(payload.id, 'description', `Fourniture et pose de ${payload.text} avec finition soignée.`);
+                    if(type==='price') updateItem(payload.id, 'price', Math.floor(Math.random()*25000)+5000);
+                    setLoadingAi(null);
+                    return;
+                }
                 try {
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                     const prompts = {
-                        enrich: `BTP Côte d'Ivoire. Améliore courte description : "${payload.text}".`,
-                        price: `Prix unitaire moyen FCFA (chiffre seul) Abidjan pour : "${payload.text}".`,
-                        email: `Email court envoi devis ${quoteInfo.number} à ${client.name}.`,
-                        analysis: `Analyse devis BTP court.`
+                        enrich: `Contexte BTP Abidjan. Améliore courte description : "${payload.text}".`,
+                        price: `Prix unitaire moyen FCFA (chiffre seul) Abidjan pour : "${payload.text}".`
                     };
-                    
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompts[type] }] }] })
-                    });
+                    const response = await fetch(url, { method: 'POST', body: JSON.stringify({ contents: [{ parts: [{ text: prompts[type] }] }] }) });
                     const data = await response.json();
                     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
                     if (text) {
                         if (type === 'enrich') updateItem(payload.id, 'description', text.replace(/"/g, ''));
                         if (type === 'price') updateItem(payload.id, 'price', parseInt(text.replace(/[^0-9]/g, '')) || 0);
-                        if (type === 'email' || type === 'analysis') {
-                            setAiResult({ title: "Assistant IA", text: text });
-                            setShowAiModal(true);
-                        }
                     }
-                } catch (e) { showToast("Erreur API", "error"); }
+                } catch (e) {}
                 setLoadingAi(null);
             };
 
+            // COULEURS THEMATIQUES
             const colors = {
                 quote: { bg: 'bg-orange-600', text: 'text-orange-600', light: 'bg-orange-50', border: 'border-orange-200' },
                 invoice: { bg: 'bg-blue-600', text: 'text-blue-600', light: 'bg-blue-50', border: 'border-blue-200' },
@@ -179,81 +176,89 @@
             }[docType];
 
             return (
-                <div className="flex flex-col lg:flex-row min-h-screen">
-                    {toast && <div className={`fixed top-4 right-4 z-[100] px-4 py-2 rounded shadow text-white text-sm ${toast.type === 'error' ? 'bg-red-500' : 'bg-slate-800'}`}>{toast.msg}</div>}
+                <div className="flex flex-col lg:flex-row min-h-screen font-sans text-slate-700">
+                    <style>{`body { font-family: 'Inter', sans-serif; }`}</style>
 
-                    {/* MODALS */}
+                    {/* TOAST */}
+                    {toast && <div className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded shadow-lg text-white text-sm ${toast.type === 'error' ? 'bg-red-500' : 'bg-slate-800'}`}>{toast.msg}</div>}
+
+                    {/* SETTINGS */}
                     {showSettings && (
                         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
                             <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
-                                <h3 className="font-bold mb-4">Configuration API</h3>
-                                <input type="password" className="input-standard font-mono mb-4" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('btp_api_key', e.target.value)}} placeholder="Clé API Gemini..." />
-                                <button onClick={() => setShowSettings(false)} className="w-full bg-slate-900 text-white py-2 rounded">OK</button>
+                                <h3 className="font-bold mb-4">Configuration</h3>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-xs text-slate-500">Clé API Gemini (Optionnel)</label>
+                                        <input type="password" className="input-standard font-mono" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('btp_api_key', e.target.value)}} />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-slate-500">Info Bancaire (Pour Facture)</label>
+                                        <input className="input-standard" value={company.bank} onChange={e => setCompany({...company, bank: e.target.value})} placeholder="Votre RIB..." />
+                                    </div>
+                                </div>
+                                <button onClick={() => setShowSettings(false)} className="w-full bg-slate-900 text-white py-2 rounded mt-4">Sauvegarder</button>
                             </div>
                         </div>
                     )}
 
-                    {showAiModal && (
-                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
-                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh]">
-                                <div className={`p-4 ${colors.bg} text-white font-bold flex justify-between rounded-t-xl`}>
-                                    <span>{aiResult.title}</span>
-                                    <button onClick={() => setShowAiModal(false)}><Icon name="close" /></button>
-                                </div>
-                                <textarea className="flex-1 p-4 text-sm bg-slate-50 resize-none outline-none" value={aiResult.text} readOnly />
-                                <div className="p-4 border-t">
-                                    <button onClick={() => {navigator.clipboard.writeText(aiResult.text); showToast("Copié !", "success")}} className="w-full py-2 border rounded hover:bg-slate-100 flex justify-center gap-2"><Icon name="clipboard" /> Copier</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* EDITEUR */}
-                    <div className="w-full lg:w-[420px] bg-white border-r h-screen overflow-y-auto flex flex-col no-print z-10 shadow-xl">
+                    {/* === SIDEBAR (EDITEUR) === */}
+                    <div className="w-full lg:w-[450px] bg-white border-r h-screen overflow-y-auto flex flex-col no-print z-10 shadow-2xl">
                         <div className="p-6 flex-1">
+                            {/* Header */}
                             <div className="flex justify-between items-center mb-6">
                                 <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-slate-800">
                                     <div className={`p-2 rounded-lg text-white ${colors.bg}`}><Icon name="helmet" size={24} /></div>
                                     BatiDevis
                                 </div>
-                                <button onClick={() => setShowSettings(true)} className="text-slate-400 hover:text-slate-600"><Icon name="settings" /></button>
+                                <button onClick={() => setShowSettings(true)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><Icon name="settings" /></button>
                             </div>
 
+                            {/* Tabs Type Document */}
                             <div className="flex bg-slate-100 p-1 rounded-lg mb-6">
                                 {['quote', 'invoice', 'receipt'].map(t => (
-                                    <button key={t} onClick={() => setDocType(t)} className={`flex-1 py-1.5 text-xs font-bold uppercase rounded transition-all ${docType === t ? 'bg-white shadow text-slate-900' : 'text-slate-400'}`}>
+                                    <button key={t} onClick={() => setDocType(t)} className={`flex-1 py-2 text-xs font-bold uppercase rounded transition-all ${docType === t ? 'bg-white shadow text-slate-900' : 'text-slate-400'}`}>
                                         {t === 'quote' ? 'Devis' : t === 'invoice' ? 'Facture' : 'Reçu'}
                                     </button>
                                 ))}
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="bg-slate-50 p-3 rounded border">
-                                    <h3 className="text-[10px] font-bold text-slate-400 uppercase mb-2">Client</h3>
-                                    <input className="input-standard mb-2 bg-white" value={client.name} onChange={e => setClient({...client, name: e.target.value})} placeholder="Nom complet" />
-                                    <input className="input-standard bg-white" value={client.city} onChange={e => setClient({...client, city: e.target.value})} placeholder="Ville" />
+                            <div className="space-y-6">
+                                {/* Section Client */}
+                                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-3">Info Client</h3>
+                                    <div className="space-y-2">
+                                        <input className="input-standard bg-white" value={client.name} onChange={e => setClient({...client, name: e.target.value})} placeholder="Nom Client" />
+                                        <div className="flex gap-2">
+                                            <input className="input-standard bg-white" value={client.phone} onChange={e => setClient({...client, phone: e.target.value})} placeholder="Tél (WhatsApp)" />
+                                            <input className="input-standard bg-white" value={client.city} onChange={e => setClient({...client, city: e.target.value})} placeholder="Ville" />
+                                        </div>
+                                    </div>
                                 </div>
-                                
+
+                                {/* Section Items */}
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
-                                        <h3 className="text-[10px] font-bold text-slate-400 uppercase">Prestations</h3>
-                                        <button onClick={() => setItems([...items, {id: Date.now(), description: "", qty: 1, price: 0, unit: "U"}])} className={`text-[10px] px-2 py-1 rounded ${colors.light} ${colors.text} font-bold flex items-center gap-1`}>
+                                        <h3 className="text-xs font-bold text-slate-500 uppercase">Lignes</h3>
+                                        <button onClick={() => setItems([...items, {id: Date.now(), description: "", qty: 1, price: 0, unit: "U"}])} className={`text-xs px-3 py-1 rounded-full ${colors.light} ${colors.text} font-bold flex items-center gap-1`}>
                                             <Icon name="plus" size={12} /> Ajouter
                                         </button>
                                     </div>
                                     <div className="space-y-3">
                                         {items.map((item) => (
-                                            <div key={item.id} className="p-2 border rounded hover:border-blue-300 bg-white relative group">
-                                                <button onClick={() => setItems(items.filter(i => i.id !== item.id))} className="absolute -top-2 -right-2 bg-red-100 text-red-500 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all"><Icon name="trash" size={10} /></button>
+                                            <div key={item.id} className="p-3 border rounded-lg hover:border-blue-300 bg-white relative group shadow-sm">
+                                                <button onClick={() => setItems(items.filter(i => i.id !== item.id))} className="absolute -top-2 -right-2 bg-red-100 text-red-500 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all"><Icon name="trash" size={12} /></button>
+                                                
                                                 <div className="relative mb-2">
-                                                    <input className="w-full text-sm font-medium outline-none border-b border-transparent focus:border-blue-500 pb-1 pr-6" placeholder="Description..." value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} />
-                                                    <button onClick={() => callAiService('enrich', {id: item.id, text: item.description})} disabled={loadingAi === item.id} className="absolute right-0 top-0 text-purple-400 hover:text-purple-600">{loadingAi === item.id ? <Icon name="loader" className="animate-spin-slow" size={12} /> : <Icon name="sparkles" size={12} />}</button>
+                                                    <input className="w-full text-sm font-medium outline-none border-b border-transparent focus:border-blue-500 pb-1 pr-8" placeholder="Description travaux..." value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} />
+                                                    <button onClick={() => callAiService('enrich', {id: item.id, text: item.description})} disabled={loadingAi === item.id} className="absolute right-0 top-0 text-purple-400 hover:text-purple-600" title="Enrichir avec IA">{loadingAi === item.id ? <Icon name="loader" className="animate-spin-slow" size={14} /> : <Icon name="sparkles" size={14} />}</button>
                                                 </div>
+
                                                 <div className="flex gap-2">
-                                                    <input type="number" className="w-14 p-1 text-xs border rounded text-center" value={item.qty} onChange={e => updateItem(item.id, 'qty', e.target.value)} />
-                                                    <select className="w-14 p-1 text-xs border rounded" value={item.unit} onChange={e => updateItem(item.id, 'unit', e.target.value)}><option>U</option><option>m²</option><option>ml</option><option>Ens</option></select>
+                                                    <div className="w-16"><input type="number" className="w-full p-1 text-xs border rounded text-center bg-slate-50" value={item.qty} onChange={e => updateItem(item.id, 'qty', e.target.value)} placeholder="Qté" /></div>
+                                                    <div className="w-16"><select className="w-full p-1 text-xs border rounded bg-slate-50" value={item.unit} onChange={e => updateItem(item.id, 'unit', e.target.value)}><option>U</option><option>m²</option><option>ml</option><option>Ens</option></select></div>
                                                     <div className="flex-1 relative">
-                                                        <input type="number" className="w-full p-1 text-xs border rounded text-right pr-5" value={item.price || ""} onChange={e => updateItem(item.id, 'price', e.target.value)} placeholder="Prix" />
+                                                        <input type="number" className="w-full p-1 text-xs border rounded text-right pr-6" value={item.price || ""} onChange={e => updateItem(item.id, 'price', e.target.value)} placeholder="Prix U." />
                                                         {!item.price && <button onClick={() => callAiService('price', {id: item.id, text: item.description})} disabled={loadingAi === item.id} className="absolute right-1 top-1 text-green-500 hover:text-green-700">{loadingAi === item.id ? <Icon name="loader" className="animate-spin-slow" size={10} /> : "$"}</button>}
                                                     </div>
                                                 </div>
@@ -264,66 +269,100 @@
                             </div>
                         </div>
 
-                        <div className="border-t p-4 bg-slate-50 sticky bottom-0">
-                            <div className="grid grid-cols-2 gap-2 mb-2">
-                                <button onClick={() => callAiService('analysis')} className="bg-slate-800 text-white py-2 rounded text-xs font-medium flex justify-center gap-2 items-center hover:bg-slate-900"><Icon name="analysis" size={14} /> Analyser</button>
-                                <button onClick={() => callAiService('email')} className="bg-slate-700 text-white py-2 rounded text-xs font-medium flex justify-center gap-2 items-center hover:bg-slate-800"><Icon name="mail" size={14} /> Email</button>
-                            </div>
-                            <button onClick={() => window.print()} className={`w-full py-3 rounded text-white font-bold flex justify-center gap-2 items-center shadow-lg ${colors.bg} hover:brightness-110`}>
-                                <Icon name="printer" /> IMPRIMER (PDF)
+                        {/* Footer Actions */}
+                        <div className="border-t p-4 bg-slate-50 sticky bottom-0 space-y-3">
+                            <button onClick={handleWhatsApp} className="w-full py-3 rounded-lg bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold flex justify-center gap-2 items-center shadow transition-all">
+                                <Icon name="whatsapp" size={20} /> Envoyer sur WhatsApp
+                            </button>
+                            <button onClick={() => window.print()} className={`w-full py-3 rounded-lg text-white font-bold flex justify-center gap-2 items-center shadow transition-all ${colors.bg} hover:brightness-110`}>
+                                <Icon name="printer" size={20} /> IMPRIMER / PDF
                             </button>
                         </div>
                     </div>
 
-                    {/* PREVIEW */}
-                    <div className="flex-1 bg-slate-200/50 p-8 overflow-y-auto flex justify-center items-start">
-                        <div className="print-area bg-white shadow-2xl w-[21cm] min-h-[29.7cm] p-[1.5cm] relative flex flex-col">
+                    {/* === PREVIEW (DROITE) === */}
+                    <div className="flex-1 bg-slate-200/60 p-8 overflow-y-auto flex justify-center items-start">
+                        <div className="print-area bg-white shadow-2xl w-[21cm] min-h-[29.7cm] p-[1.5cm] relative flex flex-col transition-all">
+                            
+                            {/* Header Doc */}
                             <div className="flex justify-between items-start mb-10">
                                 <div>
-                                    {company.logoUrl ? <img src={company.logoUrl} className="h-12 mb-3" /> : <div className={`h-12 w-12 ${colors.bg} text-white rounded flex items-center justify-center font-bold text-lg mb-3`}>BTP</div>}
-                                    <h1 className="font-bold text-slate-800 uppercase text-sm">{company.name}</h1>
-                                    <div className="text-xs text-slate-500 mt-1"><p>{company.address}</p><p>{company.phone}</p><p>{company.email}</p></div>
+                                    {company.logoUrl ? <img src={company.logoUrl} className="h-14 mb-3" /> : <div className={`h-14 w-14 ${colors.bg} text-white rounded-lg flex items-center justify-center font-bold text-2xl mb-3`}>BTP</div>}
+                                    <h1 className="font-bold text-slate-800 uppercase text-sm tracking-wide">{company.name}</h1>
+                                    <div className="text-xs text-slate-500 mt-1 space-y-0.5"><p>{company.address}</p><p>{company.phone}</p><p>{company.email}</p></div>
                                 </div>
                                 <div className="text-right">
-                                    <h2 className={`text-3xl font-black ${colors.text} tracking-tighter`}>{docType === 'quote' ? 'DEVIS' : docType === 'invoice' ? 'FACTURE' : 'REÇU'}</h2>
+                                    <h2 className={`text-4xl font-black ${colors.text} tracking-tighter uppercase`}>
+                                        {docType === 'quote' ? 'DEVIS' : docType === 'invoice' ? 'FACTURE' : 'REÇU'}
+                                    </h2>
                                     <p className="font-mono text-slate-500 text-sm mt-1">N° {quoteInfo.number}</p>
-                                    <p className="text-xs text-slate-400 mt-1">Date : {new Date(quoteInfo.date).toLocaleDateString('fr-FR')}</p>
-                                    <div className="mt-4 text-left bg-slate-50 p-2 rounded border border-slate-100 min-w-[200px]">
+                                    <p className="text-xs text-slate-400 mt-2">Date : {new Date(quoteInfo.date).toLocaleDateString('fr-FR')}</p>
+                                    
+                                    <div className="mt-6 text-left bg-slate-50 p-3 rounded border border-slate-100 min-w-[220px]">
                                         <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Client</p>
-                                        <p className="font-bold text-slate-800 text-sm">{client.name}</p>
+                                        <p className="font-bold text-slate-800 text-sm">{client.name || 'Nom du client'}</p>
+                                        <p className="text-xs text-slate-500">{client.phone}</p>
                                         <p className="text-xs text-slate-500">{client.city}</p>
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Tableau */}
                             <table className="w-full mb-8">
-                                <thead><tr className={`border-b-2 ${colors.border} text-[10px] uppercase text-slate-500`}><th className="py-2 text-left">Désignation</th><th className="py-2 text-center w-12">Qté</th><th className="py-2 text-right w-20">P.U.</th><th className="py-2 text-right w-24">Total</th></tr></thead>
+                                <thead><tr className={`border-b-2 ${colors.border} text-[10px] uppercase text-slate-500 tracking-wider`}><th className="py-2 text-left pl-2">Désignation</th><th className="py-2 text-center w-16">Qté</th><th className="py-2 text-right w-24">P.U.</th><th className="py-2 text-right w-28 pr-2">Total HT</th></tr></thead>
                                 <tbody className="text-sm text-slate-700">
                                     {items.map((item) => (
                                         <tr key={item.id} className="border-b border-slate-50">
-                                            <td className="py-2 font-medium">{item.description}</td>
-                                            <td className="py-2 text-center text-slate-500 text-xs">{item.qty} {item.unit}</td>
-                                            <td className="py-2 text-right font-mono text-xs">{formatPrice(item.price)}</td>
-                                            <td className="py-2 text-right font-bold">{formatPrice(item.qty * item.price)}</td>
+                                            <td className="py-3 pl-2 font-medium">{item.description}</td>
+                                            <td className="py-3 text-center text-slate-500 text-xs">{item.qty} {item.unit}</td>
+                                            <td className="py-3 text-right font-mono text-xs">{formatPrice(item.price)}</td>
+                                            <td className="py-3 text-right font-bold pr-2">{formatPrice(item.qty * item.price)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
 
-                            <div className="flex justify-end mb-12">
+                            {/* Totaux & Tampon */}
+                            <div className="flex justify-end mb-12 relative">
+                                {/* Tampon si Reçu */}
+                                {docType === 'receipt' && (
+                                    <div className="absolute left-0 top-0 border-4 border-emerald-200 text-emerald-200 text-4xl font-black p-4 rotate-[-15deg] opacity-50 rounded mask">
+                                        PAYÉ / ACQUITTÉ
+                                    </div>
+                                )}
+
                                 <div className="w-1/2 space-y-1 text-right">
                                     <div className="flex justify-between text-xs text-slate-500"><span>Total HT</span><span>{formatPrice(calculateSubtotal())}</span></div>
                                     <div className="flex justify-between text-xs text-slate-500"><span>TVA ({quoteInfo.tvaRate}%)</span><span>{formatPrice(calculateSubtotal() * (quoteInfo.tvaRate/100))}</span></div>
-                                    <div className={`flex justify-between items-center ${colors.light} p-2 rounded font-bold text-lg mt-2`}>
-                                        <span className={colors.text}>NET À PAYER</span>
+                                    <div className={`flex justify-between items-center ${colors.light} p-3 rounded font-bold text-lg mt-3`}>
+                                        <span className={colors.text}>{docType === 'receipt' ? 'MONTANT PERÇU' : 'NET À PAYER'}</span>
                                         <span className="text-slate-900">{formatPrice(calculateTotal())}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-auto pt-6 border-t border-slate-100 text-center text-[10px] text-slate-400">
-                                <p>{company.name} - {company.siret}</p>
-                                <p>Document généré par BatiDevis CI</p>
+                            {/* Footer spécifique */}
+                            <div className="mt-auto">
+                                {/* Info Bancaire si Facture */}
+                                {docType === 'invoice' && company.bank && (
+                                    <div className="mb-6 p-3 bg-blue-50 border border-blue-100 rounded text-center">
+                                        <p className="text-[10px] text-blue-500 font-bold uppercase mb-1">Coordonnées Bancaires</p>
+                                        <p className="font-mono text-sm text-slate-700">{company.bank}</p>
+                                    </div>
+                                )}
+                                
+                                {/* Signature Box si Devis */}
+                                {docType === 'quote' && (
+                                    <div className="flex justify-between mb-8 text-xs text-slate-400 border border-slate-200 rounded p-4">
+                                        <div className="w-1/2"><p className="font-bold mb-8">Signature Prestataire</p></div>
+                                        <div className="w-1/2 text-right"><p className="font-bold mb-8">Bon pour accord (Client)</p></div>
+                                    </div>
+                                )}
+
+                                <div className="pt-6 border-t border-slate-100 text-center text-[10px] text-slate-400">
+                                    <p>{company.name} - {company.siret}</p>
+                                    <p>Généré par BatiDevis CI</p>
+                                </div>
                             </div>
                         </div>
                     </div>
