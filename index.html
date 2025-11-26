@@ -3,50 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BatiDevis CI - Devis BTP Professionnels</title>
+    <title>BatiDevis CI - Gestion BTP</title>
     
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
-        }
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👷‍♂️</text></svg>">
 
-        /* Configuration pour l'impression (Génération PDF) */
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* CSS SPÉCIFIQUE IMPRESSION & ANIMATIONS */
+        body { background-color: #f1f5f9; color: #334155; }
+        .input-standard { width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.875rem; transition: all 0.2s; outline: none; }
+        .input-standard:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin 2s linear infinite; }
+        
+        /* IMPRESSION A4 PARFAITE */
         @media print {
-            body {
-                background-color: white;
-                -webkit-print-color-adjust: exact;
-            }
-            .no-print {
-                display: none !important;
-            }
+            body { background-color: white; }
+            .no-print { display: none !important; }
             .print-area {
-                display: block !important;
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-                position: absolute;
-                top: 0;
-                left: 0;
+                display: block !important; width: 100% !important; max-width: none !important;
+                box-shadow: none !important; margin: 0 !important; padding: 0 !important;
+                position: absolute; top: 0; left: 0;
             }
-            /* Cache le scrollbar lors de l'impression */
-            ::-webkit-scrollbar {
-                display: none;
-            }
-            @page {
-                margin: 0;
-                size: A4;
-            }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            @page { margin: 0; size: A4; }
         }
     </style>
 </head>
@@ -56,381 +52,279 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- COMPOSANTS ---
-
-        const Icon = ({ name, size = 20, className = "" }) => {
-            if (name === 'printer') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>;
-            if (name === 'plus') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
-            if (name === 'trash') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>;
-            if (name === 'refresh') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>;
-            if (name === 'hard-hat') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"/><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M4 15v-3a6 6 0 0 1 6-6h0"/><path d="M14 6h0a6 6 0 0 1 6 6v3"/></svg>;
-            if (name === 'save') return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>;
-            return null;
+        // --- COMPOSANT ICONE ---
+        const Icon = ({ name, size = 18, className = "" }) => {
+            const icons = {
+                printer: <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" />,
+                plus: <path d="M12 5v14M5 12h14" />,
+                trash: <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />,
+                settings: <path d="M12.22 2h-.44a2 2 0 01-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.09a2 2 0 01-1-1.74v-.51a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2zM12 9a3 3 0 100 6 3 3 0 000-6z" />,
+                sparkles: <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />,
+                mail: <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6" />,
+                analysis: <path d="M12 22a10 10 0 100-20 10 10 0 000 20zM12 16v-4M12 8h.01" />,
+                loader: <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />,
+                close: <path d="M18 6L6 18M6 6l12 12" />,
+                helmet: <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />,
+                clipboard: <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2M8 2h8v4H8z" />
+            };
+            return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{icons[name]}</svg>;
         };
 
+        // --- COMPOSANT PRINCIPAL ---
         const App = () => {
-            // --- VALEURS PAR DÉFAUT ---
-            const defaultCompany = {
-                name: "Ivoire BTP Construction",
-                address: "Cocody Riviera 2, Rue des Jardins",
+            // STATE
+            const [docType, setDocType] = useState('quote');
+            const [company, setCompany] = useState(() => JSON.parse(localStorage.getItem('bd_company')) || {
+                name: "MIKARIA DEV BTP",
+                address: "Cocody Angré, Abidjan",
                 city: "Abidjan, Côte d'Ivoire",
-                phone: "+225 07 07 00 11 22",
-                email: "contact@ivoire-btp.ci",
-                siret: "CC: 1234567 A / RCCM: CI-ABJ-2024-B-123",
-                logoUrl: "https://cdn-icons-png.flaticon.com/512/3962/3962954.png"
-            };
-
-            const defaultClient = {
-                name: "M. Koné Moussa",
-                address: "Marcory Zone 4, Résidence la Paix",
-                city: "Abidjan",
-                phone: "+225 05 05 44 55 66"
-            };
-
-            const defaultQuoteInfo = {
-                number: "DEV-2024-ABJ-042",
+                phone: "+225 07 67 39 15 18",
+                email: "contact@mikaria-dev.ci",
+                siret: "RCCM: CI-ABJ-2025-B-123",
+                logoUrl: ""
+            });
+            const [client, setClient] = useState(() => JSON.parse(localStorage.getItem('bd_client')) || { name: "", address: "", city: "Abidjan" });
+            const [quoteInfo, setQuoteInfo] = useState(() => JSON.parse(localStorage.getItem('bd_info')) || {
+                number: "DEV-2025-001",
                 date: new Date().toISOString().split('T')[0],
                 validity: "30 jours",
-                tvaRate: 18
-            };
-
-            const defaultItems = [
-                { id: 1, description: "Démolition cloison brique et évacuation gravats", unit: "m²", qty: 15, price: 15000 },
-                { id: 2, description: "Fourniture et pose carreaux 60x60 (Import Espagne)", unit: "m²", qty: 45, price: 22000 },
-                { id: 3, description: "Peinture type Pantex + 2 couches finition", unit: "m²", qty: 45, price: 8500 },
-                { id: 4, description: "Forfait transport et logistique", unit: "Ens", qty: 1, price: 50000 },
-            ];
-
-            // --- STATE AVEC PERSISTANCE ---
-            const [company, setCompany] = useState(() => {
-                try {
-                    const saved = localStorage.getItem('bd_company');
-                    return saved ? JSON.parse(saved) : defaultCompany;
-                } catch(e) { return defaultCompany; }
+                tvaRate: 18,
+                deposit: 30
             });
+            const [items, setItems] = useState(() => JSON.parse(localStorage.getItem('bd_items')) || [
+                { id: 1, description: "Mur brique (Exemple)", unit: "m²", qty: 20, price: 0 }
+            ]);
 
-            const [client, setClient] = useState(() => {
-                try {
-                    const saved = localStorage.getItem('bd_client');
-                    return saved ? JSON.parse(saved) : defaultClient;
-                } catch(e) { return defaultClient; }
-            });
+            const [apiKey, setApiKey] = useState(() => localStorage.getItem('btp_api_key') || "");
+            const [showSettings, setShowSettings] = useState(false);
+            const [loadingAi, setLoadingAi] = useState(null);
+            const [showAiModal, setShowAiModal] = useState(false);
+            const [aiResult, setAiResult] = useState({ title: "", text: "" });
+            const [toast, setToast] = useState(null);
 
-            const [quoteInfo, setQuoteInfo] = useState(() => {
-                try {
-                    const saved = localStorage.getItem('bd_quoteInfo');
-                    return saved ? JSON.parse(saved) : defaultQuoteInfo;
-                } catch(e) { return defaultQuoteInfo; }
-            });
-
-            const [items, setItems] = useState(() => {
-                try {
-                    const saved = localStorage.getItem('bd_items');
-                    return saved ? JSON.parse(saved) : defaultItems;
-                } catch(e) { return defaultItems; }
-            });
-
-            const [saveStatus, setSaveStatus] = useState("Sauvegardé");
-
-            // --- EFFET DE SAUVEGARDE ---
+            // SAVE AUTO
             useEffect(() => {
-                setSaveStatus("Sauvegarde...");
-                localStorage.setItem('bd_company', JSON.stringify(company));
-                localStorage.setItem('bd_client', JSON.stringify(client));
-                localStorage.setItem('bd_quoteInfo', JSON.stringify(quoteInfo));
-                localStorage.setItem('bd_items', JSON.stringify(items));
-                
-                const timer = setTimeout(() => setSaveStatus("Sauvegardé"), 500);
+                const timer = setTimeout(() => {
+                    localStorage.setItem('bd_company', JSON.stringify(company));
+                    localStorage.setItem('bd_client', JSON.stringify(client));
+                    localStorage.setItem('bd_info', JSON.stringify(quoteInfo));
+                    localStorage.setItem('bd_items', JSON.stringify(items));
+                }, 1000);
                 return () => clearTimeout(timer);
             }, [company, client, quoteInfo, items]);
 
-            // --- HELPERS ---
-            const formatPrice = (amount) => {
-                return new Intl.NumberFormat('fr-CI', { 
-                    style: 'currency', 
-                    currency: 'XOF',
-                    maximumFractionDigits: 0 
-                }).format(amount);
-            };
+            // CALCULS
+            const formatPrice = (p) => new Intl.NumberFormat('fr-CI', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(p || 0);
+            const calculateSubtotal = () => items.reduce((acc, i) => acc + (i.qty * i.price), 0);
+            const calculateTotal = () => calculateSubtotal() * (1 + quoteInfo.tvaRate / 100);
+            
+            const updateItem = (id, field, val) => setItems(prev => prev.map(i => i.id === id ? { ...i, [field]: val } : i));
+            const showToast = (msg, type) => { setToast({ msg, type }); setTimeout(() => setToast(null), 4000); };
 
-            const calculateSubtotal = () => items.reduce((acc, item) => acc + (item.qty * item.price), 0);
-            const calculateTVA = (subtotal) => subtotal * (quoteInfo.tvaRate / 100);
-            const calculateTotal = () => {
-                const sub = calculateSubtotal();
-                return sub + calculateTVA(sub);
-            };
+            // IA SERVICE (SIMULATION + REEL)
+            const callAiService = async (type, payload) => {
+                setLoadingAi(type === 'item' ? payload.id : type);
 
-            // --- HANDLERS ---
-            const handleCompanyChange = (e) => setCompany({ ...company, [e.target.name]: e.target.value });
-            const handleClientChange = (e) => setClient({ ...client, [e.target.name]: e.target.value });
-            const handleQuoteChange = (e) => setQuoteInfo({ ...quoteInfo, [e.target.name]: e.target.value });
-
-            const updateItem = (id, field, value) => {
-                setItems(items.map(item => 
-                    item.id === id ? { ...item, [field]: value } : item
-                ));
-            };
-
-            const addItem = () => {
-                setItems([...items, { id: Date.now(), description: "Nouvelle prestation", unit: "U", qty: 1, price: 0 }]);
-            };
-
-            const removeItem = (id) => {
-                setItems(items.filter(item => item.id !== id));
-            };
-
-            const handlePrint = () => {
-                window.print();
-            };
-
-            const handleReset = () => {
-                if(window.confirm("Nouveau devis : Voulez-vous effacer les lignes existantes ?\n(Les infos de l'entreprise seront conservées)")) {
-                    setItems([]);
+                if (!apiKey) {
+                    await new Promise(r => setTimeout(r, 1200));
+                    if (type === 'enrich') updateItem(payload.id, 'description', `Fourniture et pose de ${payload.text} avec finitions soignées.`);
+                    if (type === 'price') updateItem(payload.id, 'price', Math.floor(Math.random() * 20000) + 2000);
+                    if (type === 'email' || type === 'analysis') {
+                        setAiResult({
+                            title: type === 'email' ? "Email (Mode Démo)" : "Analyse (Mode Démo)",
+                            text: type === 'email' 
+                                ? `Bonjour ${client.name},\n\nVoici le devis ${quoteInfo.number} (${formatPrice(calculateTotal())}).\nCordialement, ${company.name}`
+                                : `Analyse :\n- Durée : 4 jours\n- Rentabilité : OK\n- Matériaux : Vérifier stock.`
+                        });
+                        setShowAiModal(true);
+                    }
+                    setLoadingAi(null);
+                    showToast("Mode Simulation (Configurez la clé API pour le réel)", "info");
+                    return;
                 }
-            }
 
-            // --- RENDER ---
-            return (
-                <div className="min-h-screen flex flex-col lg:flex-row text-slate-800 font-sans">
+                try {
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const prompts = {
+                        enrich: `BTP Côte d'Ivoire. Améliore courte description : "${payload.text}".`,
+                        price: `Prix unitaire moyen FCFA (chiffre seul) Abidjan pour : "${payload.text}".`,
+                        email: `Email court envoi devis ${quoteInfo.number} à ${client.name}.`,
+                        analysis: `Analyse devis BTP court.`
+                    };
                     
-                    {/* --- SIDEBAR / EDITOR --- */}
-                    <div className="no-print w-full lg:w-1/3 bg-white border-r border-slate-200 p-6 overflow-y-auto h-auto lg:h-screen shadow-xl z-10 flex flex-col justify-between">
-                        <div>
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-2">
-                                    <div className="bg-orange-500 p-2 rounded-lg text-white">
-                                        <Icon name="hard-hat" size={24} />
-                                    </div>
-                                    <h1 className="text-2xl font-bold text-slate-800">BatiDevis CI</h1>
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompts[type] }] }] })
+                    });
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        if (type === 'enrich') updateItem(payload.id, 'description', text.replace(/"/g, ''));
+                        if (type === 'price') updateItem(payload.id, 'price', parseInt(text.replace(/[^0-9]/g, '')) || 0);
+                        if (type === 'email' || type === 'analysis') {
+                            setAiResult({ title: "Assistant IA", text: text });
+                            setShowAiModal(true);
+                        }
+                    }
+                } catch (e) { showToast("Erreur API", "error"); }
+                setLoadingAi(null);
+            };
+
+            const colors = {
+                quote: { bg: 'bg-orange-600', text: 'text-orange-600', light: 'bg-orange-50', border: 'border-orange-200' },
+                invoice: { bg: 'bg-blue-600', text: 'text-blue-600', light: 'bg-blue-50', border: 'border-blue-200' },
+                receipt: { bg: 'bg-emerald-600', text: 'text-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200' }
+            }[docType];
+
+            return (
+                <div className="flex flex-col lg:flex-row min-h-screen">
+                    {toast && <div className={`fixed top-4 right-4 z-[100] px-4 py-2 rounded shadow text-white text-sm ${toast.type === 'error' ? 'bg-red-500' : 'bg-slate-800'}`}>{toast.msg}</div>}
+
+                    {/* MODALS */}
+                    {showSettings && (
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
+                            <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
+                                <h3 className="font-bold mb-4">Configuration API</h3>
+                                <input type="password" className="input-standard font-mono mb-4" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('btp_api_key', e.target.value)}} placeholder="Clé API Gemini..." />
+                                <button onClick={() => setShowSettings(false)} className="w-full bg-slate-900 text-white py-2 rounded">OK</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {showAiModal && (
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
+                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh]">
+                                <div className={`p-4 ${colors.bg} text-white font-bold flex justify-between rounded-t-xl`}>
+                                    <span>{aiResult.title}</span>
+                                    <button onClick={() => setShowAiModal(false)}><Icon name="close" /></button>
                                 </div>
-                                <div className="text-xs text-slate-400 flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-full">
-                                    <div className={`w-2 h-2 rounded-full ${saveStatus === "Sauvegardé" ? 'bg-green-400' : 'bg-yellow-400'}`}></div>
-                                    {saveStatus}
+                                <textarea className="flex-1 p-4 text-sm bg-slate-50 resize-none outline-none" value={aiResult.text} readOnly />
+                                <div className="p-4 border-t">
+                                    <button onClick={() => {navigator.clipboard.writeText(aiResult.text); showToast("Copié !", "success")}} className="w-full py-2 border rounded hover:bg-slate-100 flex justify-center gap-2"><Icon name="clipboard" /> Copier</button>
                                 </div>
                             </div>
+                        </div>
+                    )}
 
-                            <div className="space-y-8">
-                                {/* Config Entreprise */}
-                                <section>
-                                    <h2 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-3 border-b pb-2">Mon Entreprise</h2>
-                                    <div className="space-y-3">
-                                        <input type="text" name="name" value={company.name} onChange={handleCompanyChange} placeholder="Nom de l'entreprise" className="w-full p-2 border rounded text-sm" />
-                                        <input type="text" name="address" value={company.address} onChange={handleCompanyChange} placeholder="Adresse" className="w-full p-2 border rounded text-sm" />
-                                        <div className="flex gap-2">
-                                            <input type="text" name="city" value={company.city} onChange={handleCompanyChange} placeholder="Ville" className="w-full p-2 border rounded text-sm" />
-                                        </div>
-                                        <input type="text" name="phone" value={company.phone} onChange={handleCompanyChange} placeholder="Téléphone" className="w-full p-2 border rounded text-sm" />
-                                        <input type="text" name="siret" value={company.siret} onChange={handleCompanyChange} placeholder="CC / RCCM" className="w-full p-2 border rounded text-sm" />
-                                        <input type="text" name="email" value={company.email} onChange={handleCompanyChange} placeholder="Email" className="w-full p-2 border rounded text-sm" />
-                                    </div>
-                                </section>
+                    {/* EDITEUR */}
+                    <div className="w-full lg:w-[420px] bg-white border-r h-screen overflow-y-auto flex flex-col no-print z-10 shadow-xl">
+                        <div className="p-6 flex-1">
+                            <div className="flex justify-between items-center mb-6">
+                                <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-slate-800">
+                                    <div className={`p-2 rounded-lg text-white ${colors.bg}`}><Icon name="helmet" size={24} /></div>
+                                    BatiDevis
+                                </div>
+                                <button onClick={() => setShowSettings(true)} className="text-slate-400 hover:text-slate-600"><Icon name="settings" /></button>
+                            </div>
 
-                                {/* Config Client */}
-                                <section>
-                                    <h2 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-3 border-b pb-2">Informations Client</h2>
-                                    <div className="space-y-3">
-                                        <input type="text" name="name" value={client.name} onChange={handleClientChange} placeholder="Nom du client" className="w-full p-2 border rounded text-sm bg-orange-50 border-orange-200" />
-                                        <textarea name="address" value={client.address} onChange={handleClientChange} placeholder="Adresse" rows="2" className="w-full p-2 border rounded text-sm bg-orange-50 border-orange-200" />
-                                        <input type="text" name="city" value={client.city} onChange={handleClientChange} placeholder="Ville" className="w-full p-2 border rounded text-sm bg-orange-50 border-orange-200" />
-                                    </div>
-                                </section>
+                            <div className="flex bg-slate-100 p-1 rounded-lg mb-6">
+                                {['quote', 'invoice', 'receipt'].map(t => (
+                                    <button key={t} onClick={() => setDocType(t)} className={`flex-1 py-1.5 text-xs font-bold uppercase rounded transition-all ${docType === t ? 'bg-white shadow text-slate-900' : 'text-slate-400'}`}>
+                                        {t === 'quote' ? 'Devis' : t === 'invoice' ? 'Facture' : 'Reçu'}
+                                    </button>
+                                ))}
+                            </div>
 
-                                {/* Paramètres Devis */}
-                                <section>
-                                    <h2 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-3 border-b pb-2">Paramètres Devis</h2>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="text-xs text-slate-500 block mb-1">Numéro</label>
-                                            <input type="text" name="number" value={quoteInfo.number} onChange={handleQuoteChange} className="w-full p-2 border rounded text-sm font-mono" />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs text-slate-500 block mb-1">Date</label>
-                                            <input type="date" name="date" value={quoteInfo.date} onChange={handleQuoteChange} className="w-full p-2 border rounded text-sm" />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs text-slate-500 block mb-1">TVA (%)</label>
-                                            <input type="number" name="tvaRate" value={quoteInfo.tvaRate} onChange={handleQuoteChange} className="w-full p-2 border rounded text-sm" />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs text-slate-500 block mb-1">Validité</label>
-                                            <input type="text" name="validity" value={quoteInfo.validity} onChange={handleQuoteChange} className="w-full p-2 border rounded text-sm" />
-                                        </div>
-                                    </div>
-                                </section>
-
-                                {/* Lignes */}
-                                <section>
-                                    <div className="flex justify-between items-center mb-3 border-b pb-2">
-                                        <h2 className="text-sm uppercase tracking-wider text-slate-500 font-bold">Lignes de devis</h2>
-                                        <button onClick={addItem} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 flex items-center gap-1">
-                                            <Icon name="plus" size={14} /> Ajouter
+                            <div className="space-y-4">
+                                <div className="bg-slate-50 p-3 rounded border">
+                                    <h3 className="text-[10px] font-bold text-slate-400 uppercase mb-2">Client</h3>
+                                    <input className="input-standard mb-2 bg-white" value={client.name} onChange={e => setClient({...client, name: e.target.value})} placeholder="Nom complet" />
+                                    <input className="input-standard bg-white" value={client.city} onChange={e => setClient({...client, city: e.target.value})} placeholder="Ville" />
+                                </div>
+                                
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h3 className="text-[10px] font-bold text-slate-400 uppercase">Prestations</h3>
+                                        <button onClick={() => setItems([...items, {id: Date.now(), description: "", qty: 1, price: 0, unit: "U"}])} className={`text-[10px] px-2 py-1 rounded ${colors.light} ${colors.text} font-bold flex items-center gap-1`}>
+                                            <Icon name="plus" size={12} /> Ajouter
                                         </button>
                                     </div>
-                                    <div className="space-y-4">
+                                    <div className="space-y-3">
                                         {items.map((item) => (
-                                            <div key={item.id} className="bg-slate-50 p-3 rounded border border-slate-200 relative group">
-                                                <button onClick={() => removeItem(item.id)} className="absolute top-2 right-2 text-red-400 hover:text-red-600">
-                                                    <Icon name="trash" size={16} />
-                                                </button>
-                                                <div className="space-y-2 pr-6">
-                                                    <input 
-                                                        type="text" 
-                                                        value={item.description} 
-                                                        onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                                                        className="w-full p-1 bg-transparent border-b border-slate-300 focus:border-blue-500 outline-none text-sm font-medium"
-                                                        placeholder="Description"
-                                                    />
-                                                    <div className="flex gap-2">
-                                                        <div className="w-1/4">
-                                                            <label className="text-[10px] text-slate-500">Qté</label>
-                                                            <input type="number" value={item.qty} onChange={(e) => updateItem(item.id, 'qty', parseFloat(e.target.value))} className="w-full p-1 text-sm border rounded" />
-                                                        </div>
-                                                        <div className="w-1/4">
-                                                            <label className="text-[10px] text-slate-500">Unité</label>
-                                                            <select value={item.unit} onChange={(e) => updateItem(item.id, 'unit', e.target.value)} className="w-full p-1 text-sm border rounded bg-white">
-                                                                <option value="U">U</option>
-                                                                <option value="m²">m²</option>
-                                                                <option value="m³">m³</option>
-                                                                <option value="ml">ml</option>
-                                                                <option value="h">h</option>
-                                                                <option value="Ens">Ens</option>
-                                                                <option value="Fft">Fft</option>
-                                                            </select>
-                                                        </div>
-                                                        <div className="w-1/2">
-                                                            <label className="text-[10px] text-slate-500">Prix U. (FCFA)</label>
-                                                            <input type="number" value={item.price} onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value))} className="w-full p-1 text-sm border rounded" />
-                                                        </div>
+                                            <div key={item.id} className="p-2 border rounded hover:border-blue-300 bg-white relative group">
+                                                <button onClick={() => setItems(items.filter(i => i.id !== item.id))} className="absolute -top-2 -right-2 bg-red-100 text-red-500 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all"><Icon name="trash" size={10} /></button>
+                                                <div className="relative mb-2">
+                                                    <input className="w-full text-sm font-medium outline-none border-b border-transparent focus:border-blue-500 pb-1 pr-6" placeholder="Description..." value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} />
+                                                    <button onClick={() => callAiService('enrich', {id: item.id, text: item.description})} disabled={loadingAi === item.id} className="absolute right-0 top-0 text-purple-400 hover:text-purple-600">{loadingAi === item.id ? <Icon name="loader" className="animate-spin-slow" size={12} /> : <Icon name="sparkles" size={12} />}</button>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <input type="number" className="w-14 p-1 text-xs border rounded text-center" value={item.qty} onChange={e => updateItem(item.id, 'qty', e.target.value)} />
+                                                    <select className="w-14 p-1 text-xs border rounded" value={item.unit} onChange={e => updateItem(item.id, 'unit', e.target.value)}><option>U</option><option>m²</option><option>ml</option><option>Ens</option></select>
+                                                    <div className="flex-1 relative">
+                                                        <input type="number" className="w-full p-1 text-xs border rounded text-right pr-5" value={item.price || ""} onChange={e => updateItem(item.id, 'price', e.target.value)} placeholder="Prix" />
+                                                        {!item.price && <button onClick={() => callAiService('price', {id: item.id, text: item.description})} disabled={loadingAi === item.id} className="absolute right-1 top-1 text-green-500 hover:text-green-700">{loadingAi === item.id ? <Icon name="loader" className="animate-spin-slow" size={10} /> : "$"}</button>}
                                                     </div>
                                                 </div>
                                             </div>
                                         ))}
-                                        {items.length === 0 && <div className="text-center text-slate-400 text-sm py-4">Aucune ligne.</div>}
                                     </div>
-                                </section>
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <div className="mt-8 pt-6 border-t bg-white pb-4">
-                                <div className="flex gap-3">
-                                    <button onClick={handlePrint} className="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg shadow flex items-center justify-center gap-2 font-semibold">
-                                        <Icon name="printer" /> Imprimer / PDF
-                                    </button>
-                                    <button onClick={handleReset} title="Nouveau devis" className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 rounded-lg">
-                                        <Icon name="refresh" />
-                                    </button>
-                                </div>
+                        <div className="border-t p-4 bg-slate-50 sticky bottom-0">
+                            <div className="grid grid-cols-2 gap-2 mb-2">
+                                <button onClick={() => callAiService('analysis')} className="bg-slate-800 text-white py-2 rounded text-xs font-medium flex justify-center gap-2 items-center hover:bg-slate-900"><Icon name="analysis" size={14} /> Analyser</button>
+                                <button onClick={() => callAiService('email')} className="bg-slate-700 text-white py-2 rounded text-xs font-medium flex justify-center gap-2 items-center hover:bg-slate-800"><Icon name="mail" size={14} /> Email</button>
                             </div>
-                            {/* Signature Web Solutions Abidjan */}
-                            <div className="mt-4 pt-4 border-t text-center text-xs text-slate-500">
-                                <div className="flex items-center justify-center gap-2 mb-1">
-                                    <img src="https://cdn-icons-png.flaticon.com/512/3962/3962954.png" alt="Logo" className="h-5 w-5" />
-                                    <p>Site réalisé par <span className="font-semibold">Web Solutions Abidjan</span></p>
-                                </div>
-                                <p>© 2024 Tous droits réservés.</p>
-                            </div>
+                            <button onClick={() => window.print()} className={`w-full py-3 rounded text-white font-bold flex justify-center gap-2 items-center shadow-lg ${colors.bg} hover:brightness-110`}>
+                                <Icon name="printer" /> IMPRIMER (PDF)
+                            </button>
                         </div>
                     </div>
 
-                    {/* --- PREVIEW AREA (Aperçu / Impression) --- */}
-                    <div className="flex-1 bg-slate-100 p-4 lg:p-12 overflow-y-auto">
-                        <div className="print-area bg-white shadow-2xl mx-auto max-w-[21cm] min-h-[29.7cm] p-[1.5cm] relative text-sm leading-normal">
-                            
-                            {/* En-tête Devis */}
-                            <header className="flex justify-between items-start mb-12">
-                                <div className="w-1/2">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        {company.logoUrl ? 
-                                            <img src={company.logoUrl} alt="Logo" className="h-16 object-contain" onError={(e) => e.target.style.display='none'} /> : 
-                                            <div className="h-16 w-16 bg-orange-600 text-white flex items-center justify-center font-bold text-2xl rounded">BTP</div>
-                                        }
-                                    </div>
-                                    <h2 className="font-bold text-lg text-slate-900">{company.name}</h2>
-                                    <p className="text-slate-600 whitespace-pre-line">{company.address}</p>
-                                    <p className="text-slate-600">{company.city}</p>
-                                    <div className="mt-4 text-xs text-slate-500">
-                                        <p>Identifiants : {company.siret}</p>
-                                        <p>Email : {company.email}</p>
-                                        <p>Tél : {company.phone}</p>
-                                    </div>
-                                </div>
-                                <div className="w-1/3 bg-slate-50 p-4 rounded border border-slate-100">
-                                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Client</p>
-                                    <h3 className="font-bold text-slate-900 text-base mb-1">{client.name}</h3>
-                                    <p className="text-slate-600">{client.address}</p>
-                                    <p className="text-slate-600">{client.city}</p>
-                                </div>
-                            </header>
-
-                            {/* Détails Devis */}
-                            <div className="flex justify-between items-end mb-8 border-b-2 border-orange-600 pb-2">
+                    {/* PREVIEW */}
+                    <div className="flex-1 bg-slate-200/50 p-8 overflow-y-auto flex justify-center items-start">
+                        <div className="print-area bg-white shadow-2xl w-[21cm] min-h-[29.7cm] p-[1.5cm] relative flex flex-col">
+                            <div className="flex justify-between items-start mb-10">
                                 <div>
-                                    <h1 className="text-3xl font-bold text-orange-900">DEVIS</h1>
-                                    <p className="text-slate-500 mt-1">Objet : Travaux de rénovation / construction</p>
+                                    {company.logoUrl ? <img src={company.logoUrl} className="h-12 mb-3" /> : <div className={`h-12 w-12 ${colors.bg} text-white rounded flex items-center justify-center font-bold text-lg mb-3`}>BTP</div>}
+                                    <h1 className="font-bold text-slate-800 uppercase text-sm">{company.name}</h1>
+                                    <div className="text-xs text-slate-500 mt-1"><p>{company.address}</p><p>{company.phone}</p><p>{company.email}</p></div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-slate-600">N° : <span className="font-bold text-slate-900">{quoteInfo.number}</span></p>
-                                    <p className="text-slate-600">Date : <span className="font-bold text-slate-900">{new Date(quoteInfo.date).toLocaleDateString('fr-FR')}</span></p>
-                                    <p className="text-xs text-slate-400 mt-1">Validité : {quoteInfo.validity}</p>
+                                    <h2 className={`text-3xl font-black ${colors.text} tracking-tighter`}>{docType === 'quote' ? 'DEVIS' : docType === 'invoice' ? 'FACTURE' : 'REÇU'}</h2>
+                                    <p className="font-mono text-slate-500 text-sm mt-1">N° {quoteInfo.number}</p>
+                                    <p className="text-xs text-slate-400 mt-1">Date : {new Date(quoteInfo.date).toLocaleDateString('fr-FR')}</p>
+                                    <div className="mt-4 text-left bg-slate-50 p-2 rounded border border-slate-100 min-w-[200px]">
+                                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Client</p>
+                                        <p className="font-bold text-slate-800 text-sm">{client.name}</p>
+                                        <p className="text-xs text-slate-500">{client.city}</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Tableau */}
-                            <table className="w-full mb-8 border-collapse">
-                                <thead>
-                                    <tr className="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider text-left">
-                                        <th className="py-3 px-4 w-1/2">Description</th>
-                                        <th className="py-3 px-2 text-center">Qté</th>
-                                        <th className="py-3 px-2 text-center">Unité</th>
-                                        <th className="py-3 px-2 text-right">Prix U.</th>
-                                        <th className="py-3 px-4 text-right">Total HT</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-slate-700">
+                            <table className="w-full mb-8">
+                                <thead><tr className={`border-b-2 ${colors.border} text-[10px] uppercase text-slate-500`}><th className="py-2 text-left">Désignation</th><th className="py-2 text-center w-12">Qté</th><th className="py-2 text-right w-20">P.U.</th><th className="py-2 text-right w-24">Total</th></tr></thead>
+                                <tbody className="text-sm text-slate-700">
                                     {items.map((item) => (
-                                        <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
-                                            <td className="py-3 px-4 align-top">
-                                                <p className="font-medium">{item.description}</p>
-                                            </td>
-                                            <td className="py-3 px-2 text-center align-top">{item.qty}</td>
-                                            <td className="py-3 px-2 text-center align-top">{item.unit}</td>
-                                            <td className="py-3 px-2 text-right align-top">{formatPrice(item.price)}</td>
-                                            <td className="py-3 px-4 text-right align-top font-medium">{formatPrice(item.qty * item.price)}</td>
+                                        <tr key={item.id} className="border-b border-slate-50">
+                                            <td className="py-2 font-medium">{item.description}</td>
+                                            <td className="py-2 text-center text-slate-500 text-xs">{item.qty} {item.unit}</td>
+                                            <td className="py-2 text-right font-mono text-xs">{formatPrice(item.price)}</td>
+                                            <td className="py-2 text-right font-bold">{formatPrice(item.qty * item.price)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
 
-                            {/* Totaux */}
                             <div className="flex justify-end mb-12">
-                                <div className="w-1/2 lg:w-1/3">
-                                    <div className="flex justify-between py-2 border-b border-slate-100">
-                                        <span className="text-slate-600">Total HT</span>
-                                        <span className="font-bold">{formatPrice(calculateSubtotal())}</span>
-                                    </div>
-                                    <div className="flex justify-between py-2 border-b border-slate-100">
-                                        <span className="text-slate-600">TVA ({quoteInfo.tvaRate}%)</span>
-                                        <span>{formatPrice(calculateTVA(calculateSubtotal()))}</span>
-                                    </div>
-                                    <div className="flex justify-between py-3 border-t-2 border-slate-800 mt-2 bg-slate-50 px-2 -mx-2 rounded">
-                                        <span className="font-bold text-lg text-slate-900">NET À PAYER</span>
-                                        <span className="font-bold text-lg text-orange-600">{formatPrice(calculateTotal())}</span>
+                                <div className="w-1/2 space-y-1 text-right">
+                                    <div className="flex justify-between text-xs text-slate-500"><span>Total HT</span><span>{formatPrice(calculateSubtotal())}</span></div>
+                                    <div className="flex justify-between text-xs text-slate-500"><span>TVA ({quoteInfo.tvaRate}%)</span><span>{formatPrice(calculateSubtotal() * (quoteInfo.tvaRate/100))}</span></div>
+                                    <div className={`flex justify-between items-center ${colors.light} p-2 rounded font-bold text-lg mt-2`}>
+                                        <span className={colors.text}>NET À PAYER</span>
+                                        <span className="text-slate-900">{formatPrice(calculateTotal())}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Pied de page */}
-                            <footer className="absolute bottom-0 left-0 w-full p-[1.5cm] pt-0 text-center">
-                                <div className="text-[10px] text-slate-400 border-t pt-4">
-                                    <p>Bon pour accord, date et signature :</p>
-                                    <div className="h-16 border border-dashed border-slate-300 mt-2 w-1/2 mx-auto mb-4 bg-slate-50 flex items-center justify-center text-slate-300">
-                                        (Espace Signature Client)
-                                    </div>
-                                    <p>{company.name} - {company.siret} - {company.address}</p>
-                                    <p>Compte Bancaire (RIB) : CI023 01234 012345678901 25 (Ecobank)</p>
-                                </div>
-                            </footer>
+                            <div className="mt-auto pt-6 border-t border-slate-100 text-center text-[10px] text-slate-400">
+                                <p>{company.name} - {company.siret}</p>
+                                <p>Document généré par BatiDevis CI</p>
+                            </div>
                         </div>
                     </div>
                 </div>
