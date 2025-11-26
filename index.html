@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BatiDevis Pro - Mobile</title>
+    <title>BatiDevis Pro - Mobile & Desktop</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏗️</text></svg>">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,7 +25,7 @@
 
     <style>
         body { background-color: #f0f4f8; color: #334155; -webkit-font-smoothing: antialiased; }
-        .input-modern { width: 100%; padding: 12px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 16px; /* 16px évite le zoom auto sur iPhone */ transition: all 0.3s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .input-modern { width: 100%; padding: 12px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .input-modern:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); outline: none; }
         .label-modern { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
         
@@ -76,9 +76,7 @@
         };
 
         const App = () => {
-            // --- STATE ---
-            const [mobileView, setMobileView] = useState('editor'); // 'editor' | 'preview' | 'settings'
-            
+            const [mobileView, setMobileView] = useState('editor'); 
             const [company, setCompany] = useState(safeData('bd_company', { name: "MON ENTREPRISE BTP", address: "Abidjan", phone: "", email: "", siret: "", bank: "", logoUrl: "", defaultTva: 18 }));
             const [client, setClient] = useState(safeData('bd_client', { name: "Client Exemple", phone: "", city: "Abidjan" }));
             const [items, setItems] = useState(safeData('bd_items', [{id:1, description:"Prestation...", qty:1, price:0, unit:"U"}]));
@@ -127,19 +125,17 @@
             return (
                 <div className="flex flex-col h-screen overflow-hidden font-sans">
                     
-                    {/* 1. CONTENU PRINCIPAL (SCROLLABLE) */}
+                    {/* 1. CONTENU PRINCIPAL */}
                     <div className="flex-1 overflow-y-auto pb-20 lg:pb-0 lg:flex lg:flex-row">
                         
-                        {/* --- VUE EDITEUR (GAUCHE SUR PC / VISIBLE SUR MOBILE SI 'EDITOR') --- */}
+                        {/* --- VUE EDITEUR --- */}
                         <div className={`w-full lg:w-[450px] bg-white border-r border-slate-200 p-4 lg:p-6 min-h-full ${mobileView === 'editor' ? 'block' : 'hidden lg:block'}`}>
                             
                             <div className="flex justify-between items-center mb-6">
                                 <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">🏗️ BatiDevis</h1>
-                                {/* Bouton paramètres mobile visible ici */}
                                 <button onClick={() => setMobileView('settings')} className="p-2 bg-slate-100 rounded-full lg:hidden"><Icon name="settings"/></button>
                             </div>
 
-                            {/* TABS */}
                             <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
                                 {['quote', 'invoice', 'receipt'].map(t => (
                                     <button key={t} onClick={() => setDocType(t)} className={`flex-1 py-2.5 text-xs font-bold uppercase rounded-lg transition-all ${docType === t ? 'bg-white shadow text-slate-900' : 'text-slate-400'}`}>
@@ -149,7 +145,6 @@
                             </div>
 
                             <div className="space-y-6">
-                                {/* CLIENT CARD */}
                                 <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
                                     <label className="label-modern text-blue-600">Informations Client</label>
                                     <div className="space-y-3">
@@ -165,7 +160,6 @@
                                     </div>
                                 </div>
 
-                                {/* ITEMS */}
                                 <div>
                                     <div className="flex justify-between items-center mb-2 px-1">
                                         <label className="label-modern">Prestations</label>
@@ -180,7 +174,7 @@
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <input type="number" className="input-modern w-20 text-center bg-slate-50" placeholder="Qté" value={item.qty} onChange={e => setItems(items.map(i => i.id === item.id ? {...i, qty: e.target.value} : i))} />
-                                                    <select className="input-modern w-24 bg-slate-50" value={item.unit} onChange={e => setItems(items.map(i => i.id === item.id ? {...i, unit: e.target.value} : i))}><option>U</option><option>m²</option><option>ml</option><option>Ens</option></select>
+                                                    <select className="input-modern w-24 bg-slate-50" value={item.unit} onChange={e => setItems(items.map(i => i.id === item.id ? {...i, unit: e.target.value} : i))}><option>U</option><option>m²</option><option>ml</option><option>Ens</option><option>J</option></select>
                                                     <input type="number" className="input-modern text-right font-mono" placeholder="Prix" value={item.price} onChange={e => setItems(items.map(i => i.id === item.id ? {...i, price: e.target.value} : i))} />
                                                 </div>
                                             </div>
@@ -188,18 +182,25 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            {/* Spacer pour mobile car nav fixe en bas */}
                             <div className="h-20 lg:hidden"></div>
                         </div>
 
-                        {/* --- VUE APERÇU (DROITE SUR PC / VISIBLE SUR MOBILE SI 'PREVIEW') --- */}
+                        {/* --- VUE APERÇU --- */}
                         <div className={`flex-1 bg-slate-100 p-4 lg:p-8 overflow-y-auto flex justify-center items-start ${mobileView === 'preview' ? 'block' : 'hidden lg:flex'}`}>
                             <div className="print-area bg-white shadow-xl w-full max-w-[21cm] min-h-[29.7cm] p-6 lg:p-[1.5cm] relative flex flex-col">
                                 
-                                {/* FILIGRANE */}
+                                {/* FILIGRANE REÇU PAYÉ */}
                                 {docType === 'receipt' && (
-                                    <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 border-[6px] border-green-600 text-green-600 font-black text-6xl lg:text-8xl px-8 py-2 rotate-[-20deg] opacity-10 pointer-events-none rounded-xl z-0 select-none">PAYÉ</div>
+                                    <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 border-[6px] border-green-600 text-green-600 font-black text-6xl lg:text-8xl px-8 py-2 rotate-[-20deg] opacity-15 pointer-events-none rounded-xl z-0 select-none whitespace-nowrap">
+                                        PAYÉ
+                                    </div>
+                                )}
+
+                                {/* FILIGRANE FACTURE EN ATTENTE */}
+                                {docType === 'invoice' && (
+                                    <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 border-[6px] border-orange-500 text-orange-500 font-black text-4xl lg:text-6xl px-8 py-4 rotate-[-20deg] opacity-15 pointer-events-none rounded-xl z-0 select-none text-center leading-tight">
+                                        EN ATTENTE<br/>DE PAIEMENT
+                                    </div>
                                 )}
 
                                 {/* HEADER */}
@@ -262,7 +263,7 @@
                             <div className="h-24 lg:hidden"></div>
                         </div>
 
-                        {/* --- VUE PARAMETRES (MOBILE OVERLAY) --- */}
+                        {/* --- VUE PARAMETRES (MOBILE) --- */}
                         {mobileView === 'settings' && (
                             <div className="fixed inset-0 bg-white z-50 flex flex-col p-6 overflow-y-auto">
                                 <div className="flex justify-between items-center mb-6">
@@ -290,7 +291,7 @@
 
                     </div>
 
-                    {/* 2. NAVIGATION MOBILE (FOOTER BAR) */}
+                    {/* 2. NAVIGATION MOBILE (FOOTER) */}
                     <div className="fixed bottom-0 w-full bg-white border-t border-slate-200 p-2 flex justify-around items-center lg:hidden z-40 pb-safe">
                         <button onClick={() => setMobileView('editor')} className={`flex flex-col items-center p-2 ${mobileView === 'editor' ? 'text-blue-600' : 'text-slate-400'}`}>
                             <Icon name="edit" />
@@ -306,7 +307,7 @@
                         </button>
                     </div>
 
-                    {/* BOUTONS ACTIONS FLOTTANTS (DESKTOP) */}
+                    {/* BOUTONS DESKTOP */}
                     <div className="hidden lg:flex fixed bottom-6 right-6 gap-4 no-print">
                         <button onClick={handleWhatsApp} className="bg-[#25D366] text-white px-6 py-3 rounded-full shadow-lg font-bold flex items-center gap-2 hover:scale-105 transition-transform"><Icon name="whatsapp"/> WhatsApp</button>
                         <button onClick={() => window.print()} className="bg-slate-900 text-white px-6 py-3 rounded-full shadow-lg font-bold flex items-center gap-2 hover:scale-105 transition-transform"><Icon name="printer"/> Imprimer</button>
